@@ -1,0 +1,18 @@
+table WhatIf_GrowthRate
+	lineageTag: 6f4ae83f-e178-4b96-9025-e57c352b68ea
+
+	measure 'Selected Growth %' = SELECTEDVALUE('WhatIf_GrowthRate'[Growth % Value], 0)
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: c7151424-596b-4dd6-8304-ae3a744abc28
+
+	column 'Growth % Value'
+		lineageTag: bd69b825-bc3b-42f7-8955-eedf5816c9fa
+		isNameInferred
+		sourceColumn: [Growth % Value]
+
+	partition WhatIf_GrowthRate = calculated
+		source =
+				DATATABLE("Growth % Value", DOUBLE, {
+					{ -0.1 }, { -0.05 }, { -0.02 }, { 0 }, { 0.02 }, { 0.05 }, { 0.1 }
+				})
+

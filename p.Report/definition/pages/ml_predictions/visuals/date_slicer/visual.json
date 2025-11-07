@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "date_slicer",
+  "position": {
+    "x": 820.5486284289276,
+    "y": 0,
+    "z": 1000,
+    "height": 120.29925187032418,
+    "width": 459.65087281795508
+  },
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "SuperStore_Sales_UpdatedDates"
+                    }
+                  },
+                  "Property": "Order Date"
+                }
+              },
+              "queryRef": "SuperStore_Sales_UpdatedDates.Order Date.Variation.Date Hierarchy.Date",
+              "nativeQueryRef": "Order Date",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

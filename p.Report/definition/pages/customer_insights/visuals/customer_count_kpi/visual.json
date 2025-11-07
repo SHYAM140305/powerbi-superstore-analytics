@@ -1,0 +1,39 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "customer_count_kpi",
+  "position": {
+    "x": 674.21446384039893,
+    "y": 7.1820448877805481,
+    "z": 1000,
+    "height": 120.29925187032418,
+    "width": 299.85037406483792,
+    "tabOrder": 2000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "SuperStore_Sales_UpdatedDates"
+                    }
+                  },
+                  "Property": "Total Customers"
+                }
+              },
+              "queryRef": "SuperStore_Sales_UpdatedDates.Total Customers",
+              "nativeQueryRef": "Total Customers",
+              "active": true
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

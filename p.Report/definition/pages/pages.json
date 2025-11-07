@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/pagesMetadata/1.0.0/schema.json",
+  "pageOrder": [
+    "c0656e13413ab0362067",
+    "082987d6d9a29427cd15",
+    "ml_predictions",
+    "payment_behavior",
+    "customer_insights"
+  ],
+  "activePageName": "c0656e13413ab0362067"
+}

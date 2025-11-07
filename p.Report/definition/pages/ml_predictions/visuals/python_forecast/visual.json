@@ -1,0 +1,73 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "python_forecast",
+  "position": {
+    "x": 0,
+    "y": 120,
+    "z": 4000,
+    "height": 439.6875,
+    "width": 833.4375
+  },
+  "visual": {
+    "visualType": "pythonVisual",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "SuperStore_Sales_UpdatedDates"
+                    }
+                  },
+                  "Property": "Order Date"
+                }
+              },
+              "queryRef": "SuperStore_Sales_UpdatedDates.Order Date.Variation.Date Hierarchy.Date",
+              "nativeQueryRef": "Order Date"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "SuperStore_Sales_UpdatedDates"
+                    }
+                  },
+                  "Property": "Total Sales"
+                }
+              },
+              "queryRef": "SuperStore_Sales_UpdatedDates.Total Sales",
+              "nativeQueryRef": "Total Sales"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "script": [
+        {
+          "properties": {
+            "source": {
+              "expr": {
+                "Literal": {
+                  "Value": "'# Fields in the visual must include: Order Date (as Date), Total Sales (as numeric)\nimport pandas as pd\nimport numpy as np\nimport matplotlib.pyplot as plt\nimport warnings\nwarnings.filterwarnings(\"ignore\")\n\n# Defensive: ensure plot is always produced\ndef plot_message(ax, msg):\n    ax.text(0.5, 0.5, msg, ha=\"center\", va=\"center\", color=\"#AEAEB2\", fontsize=12)\n    ax.set_axis_off()\n\n# Prepare data\nif ''Order Date'' not in dataset.columns or ''Total Sales'' not in dataset.columns:\n    fig, ax = plt.subplots(figsize=(10,5), dpi=120)\n    plot_message(ax, \"Add fields: Order Date and Total Sales to the visual.\")\n    plt.show()\nelse:\n    df = dataset.rename(columns={\"Order Date\": \"ds\", \"Total Sales\": \"y\"}).copy()\n    df = df.dropna(subset=[\"ds\", \"y\"])\n    if df.empty:\n        fig, ax = plt.subplots(figsize=(10,5), dpi=120)\n        plot_message(ax, \"No data available for selected filters.\")\n        plt.show()\n    else:\n        df[\"ds\"] = pd.to_datetime(df[\"ds\"])\n        df = df.groupby(\"ds\", as_index=False)[\"y\"].sum().sort_values(\"ds\")\n        df_m = df.set_index(\"ds\").resample(\"MS\")[\"y\"].sum().reset_index()\n\n        used_model = None\n        plot_df = None\n\n        # Try Prophet\n        try:\n            from prophet import Prophet\n            m = Prophet(\n                weekly_seasonality=False,\n                yearly_seasonality=True,\n                daily_seasonality=False,\n                seasonality_mode=\"multiplicative\",\n                interval_width=0.8,\n            )\n            m.fit(df_m.rename(columns={\"ds\":\"ds\",\"y\":\"y\"}))\n            future = m.make_future_dataframe(periods=6, freq=\"MS\")\n            fcst = m.predict(future)\n\n            plot_df = pd.DataFrame({\n                \"ds\": pd.to_datetime(fcst[\"ds\"]),\n                \"actual\": np.where(fcst[\"ds\"].isin(df_m[\"ds\"]), df_m.set_index(\"ds\").reindex(fcst[\"ds\"])[\"y\"].values, np.nan),\n                \"forecast\": fcst[\"yhat\"].values,\n                \"lower\": fcst[\"yhat_lower\"].values,\n                \"upper\": fcst[\"yhat_upper\"].values\n            })\n            used_model = \"Prophet\"\n        except Exception:\n            # Fallback: ARIMA\n            try:\n                import statsmodels.api as sm\n                ts = df_m.set_index(\"ds\")[\"y\"].asfreq(\"MS\").fillna(0)\n                model = sm.tsa.statespace.SARIMAX(ts, order=(1,1,1), seasonal_order=(1,1,1,12),\n                                                  trend=\"c\", enforce_stationarity=False, enforce_invertibility=False)\n                res = model.fit(disp=False)\n                fc = res.get_forecast(steps=6)\n                fc_mean = fc.predicted_mean\n                fc_ci = fc.conf_int()\n\n                # Build aligned frame\n                fut_idx = fc_mean.index\n                hist = pd.DataFrame({\"ds\": ts.index, \"actual\": ts.values})\n                fut = pd.DataFrame({\n                    \"ds\": fut_idx,\n                    \"forecast\": fc_mean.values,\n                    \"lower\": fc_ci.iloc[:,0].values,\n                    \"upper\": fc_ci.iloc[:,1].values\n                })\n                plot_df = hist.merge(fut, on=\"ds\", how=\"outer\").sort_values(\"ds\")\n                used_model = \"ARIMA\"\n            except Exception as e:\n                # Show actuals only\n                plot_df = df_m.rename(columns={\"y\":\"actual\"}).copy()\n                plot_df[\"forecast\"] = np.nan\n                plot_df[\"lower\"] = np.nan\n                plot_df[\"upper\"] = np.nan\n                used_model = f\"Actuals only ({e.__class__.__name__})\"\n\n        # Plot\n        plt.style.use(\"dark_background\")\n        fig, ax = plt.subplots(figsize=(10,5), dpi=120)\n\n        # Apple Dark Theme colors\n        bg_page = \"#1C1C1E\"\n        bg_plot = \"#2C2C2E\"\n        col_actual = \"#007AFF\"\n        col_fc = \"#34C759\"\n\n        # Actuals\n        if \"actual\" in plot_df.columns and plot_df[\"actual\"].notna().any():\n            ax.plot(plot_df[\"ds\"], plot_df[\"actual\"], color=col_actual, linewidth=3, label=\"Actual\", marker=''o'', markersize=4)\n\n        # Forecast\n        if \"forecast\" in plot_df.columns and plot_df[\"forecast\"].notna().any():\n            ax.plot(plot_df[\"ds\"], plot_df[\"forecast\"], color=col_fc, linewidth=3, label=f\"Forecast ({used_model})\", marker=''s'', markersize=4)\n            if plot_df[[\"lower\",\"upper\"]].notna().all(axis=None):\n                ax.fill_between(plot_df[\"ds\"], plot_df[\"lower\"], plot_df[\"upper\"], color=col_fc, alpha=0.2, label=\"Confidence\")\n\n        # If nothing plotted, show a helpful message\n        if len(ax.lines) == 0:\n            plot_message(ax, \"No lines to plot. Check filters/fields.\")\n        else:\n            ax.set_title(\"Monthly Sales Forecast (next 6 months)\", color=\"#FFFFFF\", fontsize=14, pad=15, weight=''bold'')\n            ax.set_xlabel(\"Date\", color=\"#AEAEB2\", fontsize=12)\n            ax.set_ylabel(\"Sales\", color=\"#AEAEB2\", fontsize=12)\n            ax.tick_params(colors=\"#AEAEB2\", labelsize=10)\n            ax.grid(True, alpha=0.3, color=\"#3A3A3C\")\n            leg = ax.legend(facecolor=\"#2C2C2E\", edgecolor=\"#3A3A3C\", framealpha=0.9, fontsize=10)\n            for text in leg.get_texts():\n                text.set_color(\"#FFFFFF\")\n\n        fig.patch.set_facecolor(bg_page)\n        ax.set_facecolor(bg_plot)\n        ax.spines[''top''].set_visible(False)\n        ax.spines[''right''].set_visible(False)\n        ax.spines[''left''].set_color(''#3A3A3C'')\n        ax.spines[''bottom''].set_color(''#3A3A3C'')\n        plt.tight_layout()\n        plt.show()'"
+                }
+              }
+            },
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Python'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "1574df8a12e1d637457e",
+  "position": {
+    "x": 1006,
+    "y": 754,
+    "z": 6001,
+    "height": 120,
+    "width": 622,
+    "tabOrder": 14001
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Payment Behaviour",
+                    "textStyle": {
+                      "fontSize": "54pt",
+                      "color": "#007aff"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

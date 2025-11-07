@@ -1,0 +1,38 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "sales_per_order_card",
+  "position": {
+    "x": 2.7272727272727271,
+    "y": 600.90909090909088,
+    "z": 17000,
+    "height": 119.09090909090908,
+    "width": 199.09090909090907,
+    "tabOrder": 10000
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "SuperStore_Sales_UpdatedDates"
+                    }
+                  },
+                  "Property": "Sales per Order"
+                }
+              },
+              "queryRef": "SuperStore_Sales_UpdatedDates.Sales per Order",
+              "nativeQueryRef": "Sales per Order"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,54 @@
+table Dates
+	lineageTag: 6518b663-2c9c-476b-b35d-f77b89b0a3f6
+
+	measure 'Sales Last Year' = CALCULATE([Total Sales], SAMEPERIODLASTYEAR('Dates'[Date]))
+		lineageTag: 26438c15-2d84-4ae8-bad0-c61266f181c1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'YoY Sales Growth %' = DIVIDE([Total Sales] - [Sales Last Year], [Sales Last Year])
+		formatString: 0.00%;-0.00%;0.00%
+		lineageTag: e25ae7e7-15d2-419e-aafa-4c0a058f23fc
+
+	measure 'Last Month Sales' = CALCULATE([Total Sales], PREVIOUSMONTH('Dates'[Date]))
+		formatString: $#,0;($#,0);$0
+		lineageTag: 69ad3ac7-1333-4e22-87b1-7ced68939ed9
+
+	measure 'Predicted Next Month Sales' = VAR lm = [Last Month Sales] VAR maxDate = MAX('SuperStore_Sales_UpdatedDates'[Order Date]) VAR fallback = CALCULATE([Total Sales], DATESINPERIOD('SuperStore_Sales_UpdatedDates'[Order Date], EOMONTH(maxDate, -1), 1, MONTH)) VAR lastMonthSales = COALESCE(lm, fallback) VAR growth = SELECTEDVALUE('WhatIf_GrowthRate'[Growth % Value], 0) RETURN lastMonthSales * (1 + growth)
+		formatString: $#,0;($#,0);$0
+		lineageTag: ad97a98c-927c-4f2d-9ff7-fcbede79f5f2
+
+	column Date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a5482f0c-81ad-4c1e-82b4-8ccbdba60450
+		summarizeBy: none
+		sourceColumn: Date
+
+		variation Variation
+			isDefault
+			relationship: 155d7ffd-85c0-4396-838c-0c7d885b4503
+			defaultHierarchy: LocalDateTable_14825335-d852-4d5d-91d2-0fd9e0c862b2.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	partition Dates = m
+		mode: import
+		source =
+				let
+				   StartDate = List.Min(SuperStore_Sales_UpdatedDates[Order Date]),
+				    EndDate = List.Max(SuperStore_Sales_UpdatedDates[Order Date]),
+				    NumberOfDays = Duration.Days(EndDate - StartDate) + 1,
+				    DateList = List.Dates(StartDate, NumberOfDays, #duration(1, 0, 0, 0)),
+				    #"Converted to Table" = Table.FromList(DateList, Splitter.SplitByNothing(), null, null, ExtraValues.Error),
+				    #"Renamed Columns" = Table.RenameColumns(#"Converted to Table",{{"Column1", "Date"}}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Renamed Columns",{{"Date", type date}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

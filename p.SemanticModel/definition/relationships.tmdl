@@ -1,0 +1,14 @@
+relationship 8e0eeea6-2ab7-43aa-b89e-9c30cf45c7f5
+	joinOnDateBehavior: datePartOnly
+	fromColumn: SuperStore_Sales_UpdatedDates.'Ship Date'
+	toColumn: LocalDateTable_c0441738-96ae-4db0-be03-40151ae41686.Date
+
+relationship 155d7ffd-85c0-4396-838c-0c7d885b4503
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Dates.Date
+	toColumn: LocalDateTable_14825335-d852-4d5d-91d2-0fd9e0c862b2.Date
+
+relationship fe8ed36a-4c67-9c40-456f-9fc20e76f94f
+	fromColumn: SuperStore_Sales_UpdatedDates.'Order Date'
+	toColumn: Dates.Date
+

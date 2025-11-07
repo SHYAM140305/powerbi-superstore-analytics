@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.3.0/schema.json",
+  "name": "predicted_sales_kpi",
+  "position": {
+    "x": 400.39900249376558,
+    "y": 0,
+    "z": 2000,
+    "height": 120.29925187032418,
+    "width": 420.14962593516208
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Dates"
+                    }
+                  },
+                  "Property": "Predicted Next Month Sales"
+                }
+              },
+              "queryRef": "Dates.Predicted Next Month Sales",
+              "nativeQueryRef": "Predicted Next Month Sales"
+            }
+          ]
+        }
+      }
+    },
+    "drillFilterOtherVisuals": true
+  }
+}
